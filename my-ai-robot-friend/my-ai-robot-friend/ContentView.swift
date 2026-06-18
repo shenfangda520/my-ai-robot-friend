@@ -74,7 +74,7 @@ struct ChatView: View {
 
     private var orbHeader: some View {
         VStack(spacing: 8) {
-            AvatarView(imageData: store.avatarData,
+            AvatarView(imageData: store.currentAvatarData,
                        palette: palette,
                        size: isHero ? 160 : 86,
                        active: store.isSending)

@@ -1,0 +1,23 @@
+{
+  "images": [
+    {
+      "filename": "AvatarNeutral.png",
+      "idiom": "universal",
+      "scale": "1x"
+    },
+    {
+      "filename": "AvatarNeutral@2x.png",
+      "idiom": "universal",
+      "scale": "2x"
+    },
+    {
+      "filename": "AvatarNeutral@3x.png",
+      "idiom": "universal",
+      "scale": "3x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

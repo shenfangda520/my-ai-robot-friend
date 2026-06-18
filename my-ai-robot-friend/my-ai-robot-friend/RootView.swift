@@ -62,6 +62,7 @@ struct GlassFormBackground: ViewModifier {
             IridescentBackground(palette: palette)
             content
                 .scrollContentBackground(.hidden)
+                .listSectionSpacing(16)
         }
     }
 }
@@ -71,14 +72,89 @@ extension View {
         modifier(GlassFormBackground(palette: palette))
     }
 
-    /// 玻璃行背景
+    /// 玻璃行背景：同一区块内的行收紧、柔化，读起来像一组而不是一堆飘卡。
     func glassRow() -> some View {
-        listRowBackground(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+        self
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
+            .listRowBackground(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(.ultraThinMaterial)
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(.white.opacity(0.4), lineWidth: 1))
-                .padding(.vertical, 2)
-        )
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(.white.opacity(0.32), lineWidth: 0.75))
+                .shadow(color: .black.opacity(0.025), radius: 8, y: 3)
+                .padding(.vertical, 1.5)
+            )
+    }
+
+    func glassFieldBackground() -> some View {
+        self
+            .padding(.horizontal, 13)
+            .padding(.vertical, 10)
+            .background(.white.opacity(0.2), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(.white.opacity(0.38), lineWidth: 0.75)
+            }
+    }
+}
+
+struct GlassPageHeader: View {
+    let imageName: String?
+    let systemImage: String?
+    let title: String
+    let subtitle: String
+    let palette: MoodPalette
+
+    init(imageName: String? = nil, systemImage: String? = nil, title: String, subtitle: String, palette: MoodPalette) {
+        self.imageName = imageName
+        self.systemImage = systemImage
+        self.title = title
+        self.subtitle = subtitle
+        self.palette = palette
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(palette.accent.opacity(0.16))
+                    .frame(width: 72, height: 72)
+                    .blur(radius: 12)
+                if let imageName {
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 66, height: 66)
+                } else if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 25, weight: .semibold))
+                        .foregroundStyle(palette.accent)
+                        .frame(width: 58, height: 58)
+                        .background(.white.opacity(0.46), in: Circle())
+                        .overlay(Circle().stroke(.white.opacity(0.64), lineWidth: 1))
+                }
+            }
+            .frame(width: 78, height: 78)
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.primary)
+                Text(subtitle)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(.white.opacity(0.64), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.06), radius: 22, y: 12)
     }
 }

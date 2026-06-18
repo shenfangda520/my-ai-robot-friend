@@ -9,7 +9,10 @@ import Foundation
 struct Persona: Codable, Equatable {
     var name = "阿默"
     var userNickname = ""                 // 它怎么称呼你（空=不特别称呼）
+    var relationship = "室友"              // 它是你的什么（室友/朋友/恋人…）
     var identity = "住在你手机里的 AI 室友"  // 一句话身份
+
+    static let relationshipOptions = ["室友", "朋友", "恋人", "家人", "搭子", "导师"]
     var backstory = ""                    // 背景故事（可选）
     var customNote = ""                   // 额外人设补充（高级）
 
@@ -63,6 +66,10 @@ struct UserProfile: Codable, Equatable {
     var age = ""        // 年龄
     var job = ""        // 职业 / 身份
     var about = ""      // 关于你（爱好、性格、在意的事…）
+
+    static let genderOptions = ["男", "女", "其他", "保密"]
+    static let jobOptions = ["学生", "程序员", "设计", "产品", "运营", "老师",
+                             "医护", "金融", "自由职业", "创业", "其他"]
 }
 
 /// 你俩一起经历过的事（事迹时间线）。
@@ -70,6 +77,48 @@ struct SharedEvent: Identifiable, Codable, Equatable {
     var id = UUID()
     var date: Date = Date()
     var text: String
+}
+
+/// 头像表情档位。不同心情显示不同图。
+enum AvatarExpression: String, CaseIterable, Codable {
+    case neutral, happy, angry, tired
+
+    var label: String {
+        switch self {
+        case .neutral: return "默认"
+        case .happy: return "开心"
+        case .angry: return "生气"
+        case .tired: return "困"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .neutral: return "face.smiling"
+        case .happy: return "face.smiling.inverse"
+        case .angry: return "flame"
+        case .tired: return "moon.zzz"
+        }
+    }
+
+    var assetName: String {
+        switch self {
+        case .neutral: return "AvatarNeutral"
+        case .happy: return "AvatarHappy"
+        case .angry: return "AvatarAngry"
+        case .tired: return "AvatarTired"
+        }
+    }
+}
+
+extension Mood {
+    /// 当前心情对应的表情档位。
+    var expression: AvatarExpression {
+        if grumpiness > 65 { return .angry }
+        if energy < 30 { return .tired }
+        if trust > 70 || grumpiness < 25 { return .happy }
+        return .neutral
+    }
 }
 
 struct Message: Identifiable, Codable, Equatable {

@@ -18,7 +18,7 @@ final class ChatStore: ObservableObject {
     @Published var memories: [MemoryFact] = []
     @Published var user = UserProfile()
     @Published var events: [SharedEvent] = []
-    @Published var avatarData: Data?   // 自定义头像图片；nil = 用默认情绪光球
+    @Published var avatarImages: [String: Data] = [:]  // 各表情的头像图；空 = 用默认情绪光球
     @Published var firstMet = Date()
 
     private let kMessages = "chat_history"
@@ -30,7 +30,6 @@ final class ChatStore: ObservableObject {
     private let kMemories = "memories"
     private let kUser = "user_profile"
     private let kEvents = "shared_events"
-    private let kAvatar = "avatar_image"
     private let kFirstMet = "first_met"
 
     init() { load() }
@@ -57,7 +56,7 @@ final class ChatStore: ObservableObject {
         if let v = decode([MemoryFact].self, kMemories) { memories = v }
         if let v = decode(UserProfile.self, kUser) { user = v }
         if let v = decode([SharedEvent].self, kEvents) { events = v }
-        avatarData = d.data(forKey: kAvatar)
+        loadAvatars(d)
         if let fm = d.object(forKey: kFirstMet) as? Date { firstMet = fm }
         else { d.set(firstMet, forKey: kFirstMet) }
 
@@ -114,10 +113,41 @@ final class ChatStore: ObservableObject {
 
     func saveUser() { encodeSet(user, kUser) }
 
-    func setAvatar(_ data: Data?) {
-        avatarData = data
-        if let data { UserDefaults.standard.set(data, forKey: kAvatar) }
-        else { UserDefaults.standard.removeObject(forKey: kAvatar) }
+    private func avatarKey(_ e: AvatarExpression) -> String { "avatar_\(e.rawValue)" }
+
+    private func loadAvatars(_ d: UserDefaults) {
+        for e in AvatarExpression.allCases {
+            if let data = d.data(forKey: avatarKey(e)) { avatarImages[e.rawValue] = data }
+        }
+        // 从旧版单张头像迁移到“默认”表情
+        if avatarImages[AvatarExpression.neutral.rawValue] == nil,
+           let old = d.data(forKey: "avatar_image") {
+            avatarImages[AvatarExpression.neutral.rawValue] = old
+            d.set(old, forKey: avatarKey(.neutral))
+            d.removeObject(forKey: "avatar_image")
+        }
+    }
+
+    func avatar(for e: AvatarExpression) -> Data? { avatarImages[e.rawValue] }
+
+    /// 当前要显示的头像：先按心情选表情，没设就退回“默认”表情。
+    var currentAvatarData: Data? {
+        avatar(for: mood.expression) ?? avatar(for: .neutral)
+    }
+
+    /// 兼容旧引用。
+    var avatarData: Data? { avatar(for: .neutral) }
+
+    var hasAnyAvatar: Bool { !avatarImages.isEmpty }
+
+    func setAvatar(_ data: Data?, for e: AvatarExpression) {
+        if let data {
+            avatarImages[e.rawValue] = data
+            UserDefaults.standard.set(data, forKey: avatarKey(e))
+        } else {
+            avatarImages[e.rawValue] = nil
+            UserDefaults.standard.removeObject(forKey: avatarKey(e))
+        }
     }
 
     func saveEvents() { encodeSet(events, kEvents) }
