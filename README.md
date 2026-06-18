@@ -1,4 +1,4 @@
-# 我的AI机器朋友 🤖
+# My AI Robot Friend 🤖
 
 一个简单的AI聊天机器人网页应用，可以和AI朋友聊天、问问题、听笑话！
 
@@ -25,7 +25,7 @@
 ## 项目结构
 
 ```
-我的ai机器朋友/
+my-ai-robot-friend/
 ├── index.html      # 主页面
 ├── style.css       # 样式文件
 ├── script.js       # JavaScript逻辑
