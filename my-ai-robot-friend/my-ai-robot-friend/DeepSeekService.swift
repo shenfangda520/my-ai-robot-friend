@@ -37,6 +37,7 @@ struct DeepSeekService {
                                   memories: [MemoryFact], events: [SharedEvent],
                                   mood: Mood) -> String {
         var s = "你叫「\(p.name)」，\(p.identity)。"
+        if !p.gender.isEmpty { s += "你的形象性别是\(p.gender)。" }
         if !p.relationship.isEmpty { s += "你是对方的\(p.relationship)。" }
         if !p.backstory.isEmpty { s += p.backstory }
         s += "\n\n你不是客服、不是助手，更不是有求必应的工具人。你是个有脾气、有自己想法的存在，像真人一样用手机跟对方聊天。"

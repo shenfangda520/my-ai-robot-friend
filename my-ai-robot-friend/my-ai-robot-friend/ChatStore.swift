@@ -21,6 +21,7 @@ final class ChatStore: ObservableObject {
     @Published var events: [SharedEvent] = []
     @Published var avatarImages: [String: Data] = [:]  // 各表情的头像图；空 = 用默认情绪光球
     @Published var firstMet = Date()
+    @Published var historyResetToken = UUID()
 
     private let kMessages = "chat_history"
     private let kMood = "mood"
@@ -170,6 +171,8 @@ final class ChatStore: ObservableObject {
     func clearHistory() {
         messages = []
         mood = Mood()
+        suggestions = []
+        historyResetToken = UUID()
         messages.append(Message(
             role: .assistant,
             content: "……我们之前认识吗？算了，重新开始吧。",

@@ -7,6 +7,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var store: ChatStore
+    var onClearHistory: () -> Void = {}
 
     @State private var keyDraft = ""
     @State private var confirmClearChat = false
@@ -144,6 +145,53 @@ struct SettingsView: View {
                     }
                 }
 
+                // 关于我们
+                SurfaceSection(title: "关于我们", subtitle: "这个 app 由 ShenFangda 设计和制作。") {
+                    HStack(spacing: 14) {
+                        MoonAvatarBadge(size: 74)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("阿默")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundStyle(Color.black.opacity(0.72))
+                            Text("月光头像已作为 app 形象展示，保留轻盈的 Siri 式动态沟通感。")
+                                .font(.system(size: 13))
+                                .foregroundStyle(Color.black.opacity(0.42))
+                                .lineSpacing(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.vertical, 4)
+                    RowDivider()
+                    AboutRow(label: "作者", value: "ShenFangda", systemImage: "person.crop.circle")
+                    RowDivider()
+                    Link(destination: URL(string: "https://github.com/shenfangda520/my-ai-robot-friend")!) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "chevron.left.forwardslash.chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .frame(width: 30, height: 30)
+                                .background(Color.white.opacity(0.56), in: Circle())
+                                .overlay(Circle().stroke(Color.white.opacity(0.72), lineWidth: 1))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("GitHub")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(Color.black.opacity(0.68))
+                                Text("github.com/shenfangda520/my-ai-robot-friend")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.black.opacity(0.38))
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(Color.black.opacity(0.34))
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                    RowDivider()
+                    AboutRow(label: "版本", value: "1.0", systemImage: "app.badge")
+                }
+
                 // 数据
                 SurfaceSection(title: "数据") {
                     Button(role: .destructive) { confirmClearChat = true } label: {
@@ -171,7 +219,10 @@ struct SettingsView: View {
             }
             .alert("清空聊天记录？", isPresented: $confirmClearChat) {
                 Button("取消", role: .cancel) {}
-                Button("清空", role: .destructive) { store.clearHistory() }
+                Button("清空", role: .destructive) {
+                    store.clearHistory()
+                    onClearHistory()
+                }
             } message: {
                 Text("\(store.persona.name)会忘记和你聊过的一切，情绪也重置。记忆不受影响。")
             }
@@ -187,6 +238,31 @@ struct SettingsView: View {
     private func hideKeyboard() {
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+private struct AboutRow: View {
+    let label: String
+    let value: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.black.opacity(0.54))
+                .frame(width: 30, height: 30)
+                .background(Color.white.opacity(0.56), in: Circle())
+                .overlay(Circle().stroke(Color.white.opacity(0.72), lineWidth: 1))
+            Text(label)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.black.opacity(0.64))
+            Spacer()
+            Text(value)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Color.black.opacity(0.42))
+        }
+        .padding(.vertical, 8)
     }
 }
 

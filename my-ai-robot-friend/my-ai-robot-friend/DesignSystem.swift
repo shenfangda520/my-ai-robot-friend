@@ -328,73 +328,296 @@ struct IconActionButton: View {
     }
 }
 
+struct MoonAvatarBadge: View {
+    var size: CGFloat = 86
+    var showGlow: Bool = true
+    var showMoonMark: Bool = true
+    var imageName: String = "AssistantFemale"
+
+    var body: some View {
+        ZStack {
+            if showGlow {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(hex: 0xDDEBFF).opacity(0.84),
+                                Color(hex: 0xBCA7FF).opacity(0.36),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: size * 0.16,
+                            endRadius: size * 0.78
+                        )
+                    )
+                    .frame(width: size * 1.55, height: size * 1.55)
+                    .blur(radius: size * 0.14)
+            }
+
+            Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .offset(y: size * 0.12)
+                    .frame(width: size, height: size)
+                    .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.96),
+                                    Color(hex: 0xBFE7FF).opacity(0.82),
+                                    Color(hex: 0xC7B5FF).opacity(0.86)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: max(1.2, size * 0.025)
+                        )
+                )
+                .shadow(color: Color(hex: 0x83CFFF).opacity(0.26), radius: size * 0.18, y: size * 0.08)
+                .shadow(color: .black.opacity(0.12), radius: size * 0.16, y: size * 0.08)
+
+            Circle()
+                .stroke(Color.white.opacity(0.36), lineWidth: 1)
+                .frame(width: size * 1.18, height: size * 1.18)
+
+            if showMoonMark {
+                Image(systemName: "moon.stars.fill")
+                    .font(.system(size: size * 0.15, weight: .semibold))
+                    .foregroundStyle(Color.white, Color(hex: 0x97BFFF))
+                    .frame(width: size * 0.34, height: size * 0.34)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.82), lineWidth: 1))
+                    .offset(x: size * 0.34, y: size * 0.34)
+                    .shadow(color: .black.opacity(0.12), radius: size * 0.08, y: size * 0.03)
+            }
+        }
+        .frame(width: size * 1.48, height: size * 1.48)
+        .accessibilityLabel("阿默头像")
+    }
+}
+
 // MARK: - Siri-like communication surfaces
 
 struct SiriCommunicationHero: View {
+    enum Visual {
+        case assistantAvatar
+        case personSignal
+    }
+
     let title: String
     let subtitle: String
     let chips: [String]
     let palette: MoodPalette
+    var visual: Visual = .assistantAvatar
+    var avatarImageName: String = "AssistantFemale"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .center, spacing: 16) {
-                SiriWaveView(palette: palette)
-                    .frame(width: 116, height: 116)
+        ZStack(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(alignment: .top, spacing: 16) {
+                    if visual == .assistantAvatar {
+                        // 半身头像左侧凸出框外56pt，框内占约96pt
+                        Color.clear.frame(width: 100, height: 1)
+                    } else {
+                        PersonSignalHero(palette: palette)
+                            .frame(width: 132, height: 132)
+                    }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(title)
-                        .font(.system(size: 28, weight: .regular))
-                        .foregroundStyle(Color.black.opacity(0.74))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.82)
-                    Text(subtitle)
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.black.opacity(0.42))
-                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(title)
+                            .font(.system(size: 28, weight: .regular))
+                            .foregroundStyle(Color.black.opacity(0.74))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.82)
+                        Text(subtitle)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.black.opacity(0.42))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                HStack(spacing: 8) {
+                    ForEach(chips, id: \.self) { chip in
+                        Text(chip)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color.black.opacity(0.52))
+                            .lineLimit(1)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 7)
+                            .background(Color.white.opacity(0.54), in: Capsule())
+                            .overlay(Capsule().stroke(Color.white.opacity(0.76), lineWidth: 1))
+                    }
                 }
             }
-
-            HStack(spacing: 8) {
-                ForEach(chips, id: \.self) { chip in
-                    Text(chip)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color.black.opacity(0.52))
-                        .lineLimit(1)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(Color.white.opacity(0.54), in: Capsule())
-                        .overlay(Capsule().stroke(Color.white.opacity(0.76), lineWidth: 1))
-                }
-            }
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: 34, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 34, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.68),
-                                    palette.accentSoft.opacity(0.24),
-                                    Color(hex: 0xF4D6BF).opacity(0.20),
-                                    Color.white.opacity(0.40)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 34, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 34, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.68),
+                                        palette.accentSoft.opacity(0.24),
+                                        Color(hex: 0xF4D6BF).opacity(0.20),
+                                        Color.white.opacity(0.40)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 34, style: .continuous)
+                            .stroke(Color.white.opacity(0.64), lineWidth: 1)
+                    )
+            }
+            .shadow(color: .black.opacity(0.075), radius: 24, y: 12)
+
+            // 半身头像：左侧和顶部凸出框外
+            if visual == .assistantAvatar {
+                AssistantBustHero(palette: palette, imageName: avatarImageName)
+                    .offset(x: -56, y: -40)
+            }
         }
-        .overlay(
-            RoundedRectangle(cornerRadius: 34, style: .continuous)
-                .stroke(Color.white.opacity(0.78), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.075), radius: 24, y: 12)
         .revealOnAppear()
+    }
+
+}
+
+struct AssistantBustHero: View {
+    let palette: MoodPalette
+    let imageName: String
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            ZStack {
+                Circle()
+                    .fill(palette.accentSoft.opacity(0.34))
+                    .frame(width: 132, height: 132)
+                    .blur(radius: 22)
+                    .offset(y: 16)
+
+                ForEach(0..<3, id: \.self) { index in
+                    let pulse = 1 + 0.035 * sin(t * (1.25 + Double(index) * 0.22) + Double(index))
+                    Circle()
+                        .stroke(
+                            palette.orb[index % palette.orb.count].opacity(0.34),
+                            lineWidth: index == 0 ? 7 : 4
+                        )
+                        .frame(width: 104 + CGFloat(index) * 17, height: 104 + CGFloat(index) * 17)
+                        .scaleEffect(pulse)
+                        .offset(y: 18)
+                }
+
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 172, height: 196)
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .black, location: 0.0),
+                                .init(color: .black, location: 0.72),
+                                .init(color: .black.opacity(0.90), location: 0.84),
+                                .init(color: .clear, location: 1.0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .black.opacity(0.88), location: 0.08),
+                                .init(color: .black, location: 0.22),
+                                .init(color: .black, location: 0.74),
+                                .init(color: .black.opacity(0.72), location: 0.88),
+                                .init(color: .clear, location: 1.0)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .shadow(color: palette.accent.opacity(0.28), radius: 24, y: 10)
+                    .shadow(color: .black.opacity(0.15), radius: 22, y: 10)
+                    .scaleEffect(1 + 0.012 * sin(t * 1.45))
+                    .offset(x: -6, y: -20)
+
+                Image(systemName: "moon.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.white, Color(hex: 0x8EBFFF))
+                    .frame(width: 32, height: 32)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.84), lineWidth: 1))
+                    .offset(x: 42, y: 42)
+            }
+            .frame(width: 152, height: 190)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+struct PersonSignalHero: View {
+    let palette: MoodPalette
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            ZStack {
+                Circle()
+                    .fill(palette.accentSoft.opacity(0.28))
+                    .frame(width: 116, height: 116)
+                    .blur(radius: 18)
+
+                ForEach(0..<3, id: \.self) { index in
+                    PersonSignalRing(palette: palette, index: index, time: t)
+                }
+
+                Image(systemName: "person.text.rectangle.fill")
+                    .font(.system(size: 42, weight: .semibold))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Color.black.opacity(0.58))
+                    .frame(width: 82, height: 82)
+                    .background(Color.white.opacity(0.62), in: Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.86), lineWidth: 1))
+                    .shadow(color: .black.opacity(0.08), radius: 14, y: 7)
+            }
+            .frame(width: 132, height: 132)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+private struct PersonSignalRing: View {
+    let palette: MoodPalette
+    let index: Int
+    let time: TimeInterval
+
+    private var ringSize: CGFloat {
+        88 + CGFloat(index) * 18
+    }
+
+    private var pulse: CGFloat {
+        let speed = 1.05 + Double(index) * 0.2
+        return 1 + CGFloat(0.026 * sin(time * speed + Double(index)))
+    }
+
+    var body: some View {
+        Circle()
+            .stroke(ringColor, lineWidth: index == 0 ? 6 : 3)
+            .frame(width: ringSize, height: ringSize)
+            .scaleEffect(pulse)
+    }
+
+    private var ringColor: Color {
+        palette.orb[(index + 1) % palette.orb.count].opacity(0.28)
     }
 }
 

@@ -16,11 +16,15 @@ struct ProfileView: View {
                     title: "和\(store.persona.name)校准频道",
                     subtitle: "像和 Siri 沟通一样，声波会持续呼吸；下面的设定会影响它听懂你之后怎么回应。",
                     chips: [store.mood.statusLabel, store.persona.relationship, store.intimacyLabel],
-                    palette: palette
+                    palette: palette,
+                    avatarImageName: store.persona.avatarImageName
                 )
 
                 SurfaceSection(title: "身份", subtitle: "先定义它是谁，再定义它和你的关系。") {
                     LabeledField(label: "名字", text: $store.persona.name, placeholder: "阿默")
+                    MenuPickerRow(label: "形象性别", selection: $store.persona.gender,
+                                  options: Persona.genderOptions)
+                    RowDivider()
                     MenuPickerRow(label: "它是你的", selection: $store.persona.relationship,
                                   options: Persona.relationshipOptions)
                     LabeledField(label: "一句话身份", text: $store.persona.identity, placeholder: "住在你手机里的 AI 室友")

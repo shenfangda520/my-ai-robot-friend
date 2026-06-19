@@ -38,7 +38,11 @@ struct RootView: View {
             MemoryView(store: store)
                 .tabItem { Label("记忆", systemImage: "brain.head.profile") }
                 .tag(3)
-            SettingsView(store: store)
+            SettingsView(store: store) {
+                withAnimation(GenUIMotion.morph) {
+                    selection = 0
+                }
+            }
                 .tabItem { Label("设置", systemImage: "gearshape.fill") }
                 .tag(4)
         }

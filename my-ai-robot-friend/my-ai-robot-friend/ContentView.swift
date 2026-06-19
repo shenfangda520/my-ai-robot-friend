@@ -59,6 +59,14 @@ struct ChatView: View {
         .onChange(of: voiceInput.transcript) { _, value in
             input = value
         }
+        .onChange(of: store.historyResetToken) { _, _ in
+            input = ""
+            memoryDraft = ""
+            showingMemoryComposer = false
+            inputFocused = false
+            toast = nil
+            voiceInput.stop()
+        }
         .onDisappear {
             voiceInput.stop()
         }
@@ -98,8 +106,9 @@ struct ChatView: View {
 
             Button { } label: {
                 HStack(spacing: 8) {
-                    SiriWaveView(palette: palette)
-                        .frame(width: 26, height: 26)
+                    MoonAvatarBadge(size: 28, showGlow: false, showMoonMark: false,
+                                    imageName: store.persona.avatarImageName)
+                        .frame(width: 34, height: 34)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(store.persona.name)
                             .font(.system(size: 12, weight: .semibold))
@@ -109,9 +118,9 @@ struct ChatView: View {
                     }
                 }
                 .foregroundStyle(Color.black.opacity(0.62))
-                .padding(.leading, 8)
+                .padding(.leading, 4)
                 .padding(.trailing, 12)
-                .frame(height: 38)
+                .frame(minWidth: 118, minHeight: 42)
                 .background(.ultraThinMaterial, in: Capsule())
                 .overlay(Capsule().stroke(Color.white.opacity(0.78), lineWidth: 1))
                 .shadow(color: .black.opacity(0.055), radius: 12, y: 6)
@@ -161,6 +170,7 @@ struct ChatView: View {
                     moodLabel: store.mood.statusLabel,
                     intimacyLabel: store.intimacyLabel,
                     prompt: input,
+                    avatarImageName: store.persona.avatarImageName,
                     mode: store.isSending ? .thinking : (isComposing ? .composing : .ready)
                 )
                 .frame(minHeight: isComposing ? 172 : 232)
@@ -509,6 +519,7 @@ private struct AdaptiveStatusPanel: View {
     let moodLabel: String
     let intimacyLabel: String
     let prompt: String
+    let avatarImageName: String
     let mode: AdaptivePanelMode
 
     var body: some View {
@@ -538,7 +549,8 @@ private struct AdaptiveStatusPanel: View {
             }
 
             if mode == .ready {
-                HomeVoicePortal(name: name, moodLabel: moodLabel, palette: palette)
+                HomeVoicePortal(name: name, moodLabel: moodLabel, palette: palette,
+                                avatarImageName: avatarImageName)
                     .frame(maxWidth: .infinity)
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
             } else {
@@ -671,6 +683,7 @@ private struct HomeVoicePortal: View {
     let name: String
     let moodLabel: String
     let palette: MoodPalette
+    let avatarImageName: String
 
     var body: some View {
         HStack(spacing: 14) {
@@ -684,6 +697,9 @@ private struct HomeVoicePortal: View {
                     .background(Color.white.opacity(0.32), in: Circle())
                     .overlay(Circle().stroke(Color.white.opacity(0.82), lineWidth: 1))
                     .shadow(color: palette.accent.opacity(0.14), radius: 18, y: 8)
+                    .opacity(0.56)
+                MoonAvatarBadge(size: 66, showGlow: false, showMoonMark: false,
+                                imageName: avatarImageName)
             }
             .frame(width: 96, height: 96)
 

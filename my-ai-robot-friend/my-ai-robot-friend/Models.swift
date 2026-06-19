@@ -9,9 +9,11 @@ import Foundation
 struct Persona: Codable, Equatable {
     var name = "阿默"
     var userNickname = ""                 // 它怎么称呼你（空=不特别称呼）
+    var gender = "女"                     // 形象性别：男/女
     var relationship = "室友"              // 它是你的什么（室友/朋友/恋人…）
     var identity = "住在你手机里的 AI 室友"  // 一句话身份
 
+    static let genderOptions = ["女", "男"]
     static let relationshipOptions = ["室友", "朋友", "恋人", "家人", "搭子", "导师"]
     var backstory = ""                    // 背景故事（可选）
     var customNote = ""                   // 额外人设补充（高级）
@@ -24,6 +26,30 @@ struct Persona: Codable, Equatable {
     var proactiveness = 60 // 主动性（影响通知频率）
 
     var creativity = 1.1  // 模型 temperature
+
+    init() {}
+
+    private enum CodingKeys: String, CodingKey {
+        case name, userNickname, gender, relationship, identity, backstory, customNote
+        case snark, warmth, talkative, humor, proactiveness, creativity
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        name = try c.decodeIfPresent(String.self, forKey: .name) ?? "阿默"
+        userNickname = try c.decodeIfPresent(String.self, forKey: .userNickname) ?? ""
+        gender = try c.decodeIfPresent(String.self, forKey: .gender) ?? "女"
+        relationship = try c.decodeIfPresent(String.self, forKey: .relationship) ?? "室友"
+        identity = try c.decodeIfPresent(String.self, forKey: .identity) ?? "住在你手机里的 AI 室友"
+        backstory = try c.decodeIfPresent(String.self, forKey: .backstory) ?? ""
+        customNote = try c.decodeIfPresent(String.self, forKey: .customNote) ?? ""
+        snark = try c.decodeIfPresent(Int.self, forKey: .snark) ?? 70
+        warmth = try c.decodeIfPresent(Int.self, forKey: .warmth) ?? 45
+        talkative = try c.decodeIfPresent(Int.self, forKey: .talkative) ?? 50
+        humor = try c.decodeIfPresent(Int.self, forKey: .humor) ?? 60
+        proactiveness = try c.decodeIfPresent(Int.self, forKey: .proactiveness) ?? 60
+        creativity = try c.decodeIfPresent(Double.self, forKey: .creativity) ?? 1.1
+    }
 
     private func lvl(_ v: Int, _ low: String, _ mid: String, _ high: String) -> String {
         v >= 67 ? high : (v >= 34 ? mid : low)
@@ -43,6 +69,10 @@ struct Persona: Codable, Equatable {
         talkative >= 67 ? "可以多说几句，但别长篇大论。"
         : (talkative >= 34 ? "一般 1~3 句话，像微信聊天。"
         : "惜字如金，通常就一两句、甚至几个字。")
+    }
+
+    var avatarImageName: String {
+        gender == "男" ? "AssistantMale" : "AssistantFemale"
     }
 }
 
@@ -127,12 +157,7 @@ enum AvatarExpression: String, CaseIterable, Codable {
     }
 
     var assetName: String {
-        switch self {
-        case .neutral: return "AvatarNeutral"
-        case .happy: return "AvatarHappy"
-        case .angry: return "AvatarAngry"
-        case .tired: return "AvatarTired"
-        }
+        "MoonAvatar"
     }
 }
 

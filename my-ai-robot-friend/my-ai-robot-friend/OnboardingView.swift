@@ -179,21 +179,26 @@ private struct OnboardingPageView: View {
                         .fill(page.tint.opacity(0.28))
                         .frame(width: 150, height: 150)
                         .blur(radius: 30)
-                    Image(systemName: page.symbol)
-                        .font(.system(size: 76, weight: .light))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [
-                                    Color.white,
-                                    page.tint.opacity(0.92),
-                                    palette.accent.opacity(0.72)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                    if page.usesAvatar {
+                        MoonAvatarBadge(size: 132)
+                            .symbolEffect(.pulse, options: .repeating.speed(0.7), value: page.id)
+                    } else {
+                        Image(systemName: page.symbol)
+                            .font(.system(size: 76, weight: .light))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white,
+                                        page.tint.opacity(0.92),
+                                        palette.accent.opacity(0.72)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                        .shadow(color: page.tint.opacity(0.25), radius: 18, y: 8)
-                        .symbolEffect(.pulse, options: .repeating.speed(0.6))
+                            .shadow(color: page.tint.opacity(0.25), radius: 18, y: 8)
+                            .symbolEffect(.pulse, options: .repeating.speed(0.6))
+                    }
                 }
 
                 OnboardingPreviewStrip(page: page)
@@ -250,6 +255,7 @@ private struct OnboardingPage: Identifiable {
     let tint: Color
     let chips: [String]
     let prompt: String
+    var usesAvatar = false
 
     static let all: [OnboardingPage] = [
         OnboardingPage(
@@ -259,7 +265,8 @@ private struct OnboardingPage: Identifiable {
             symbol: "sparkles.rectangle.stack",
             tint: Color(hex: 0x86C8FF),
             chips: ["聊天", "复盘", "陪你想"],
-            prompt: "今天我该先做哪件事？"
+            prompt: "今天我该先做哪件事？",
+            usesAvatar: true
         ),
         OnboardingPage(
             eyebrow: "Memory",
@@ -272,7 +279,7 @@ private struct OnboardingPage: Identifiable {
         ),
         OnboardingPage(
             eyebrow: "Personality",
-            title: "性格、头像、关系都能调",
+            title: "性格、语气、关系都能调",
             subtitle: "嘴硬一点、温柔一点、话少一点，都可以在资料页里慢慢调成你喜欢的样子。",
             symbol: "slider.horizontal.3",
             tint: Color(hex: 0xB28BFF),
