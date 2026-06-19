@@ -17,7 +17,8 @@ struct MeView: View {
                     subtitle: "像 Siri 记住你的偏好一样，这里决定它怎么称呼你、理解你，以及什么时候更懂你的语气。",
                     chips: [displayName, store.user.job.isEmpty ? "身份未设置" : store.user.job, "本机保存"],
                     palette: palette,
-                    visual: .personSignal
+                    visual: .assistantAvatar,
+                    avatarImageName: store.user.avatarImageName
                 )
 
                 SurfaceSection(title: "你的称呼", subtitle: "先让它知道正在和谁说话。") {

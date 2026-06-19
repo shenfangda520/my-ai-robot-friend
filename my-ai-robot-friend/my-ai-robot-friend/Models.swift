@@ -125,6 +125,11 @@ struct UserProfile: Codable, Equatable {
     static let genderOptions = ["男", "女", "其他", "保密"]
     static let jobOptions = ["学生", "程序员", "设计", "产品", "运营", "老师",
                              "医护", "金融", "自由职业", "创业", "其他"]
+
+    /// 你自己的半身像（暂复用同一套立绘集；以后可换成 UserMale/UserFemale 等专属图）。
+    var avatarImageName: String {
+        gender == "男" ? "AssistantMale" : "AssistantFemale"
+    }
 }
 
 /// 你俩一起经历过的事（事迹时间线）。

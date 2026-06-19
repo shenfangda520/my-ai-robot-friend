@@ -416,21 +416,22 @@ struct SiriCommunicationHero: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             VStack(alignment: .leading, spacing: 18) {
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: 18) {
                     if visual == .assistantAvatar {
-                        // 半身头像左侧凸出框外56pt，框内占约96pt
-                        Color.clear.frame(width: 100, height: 1)
+                        // 给左侧半身像留位，标题文字从这之后开始，避免被立绘压住
+                        Color.clear.frame(width: 118, height: 1)
                     } else {
                         PersonSignalHero(palette: palette)
                             .frame(width: 132, height: 132)
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 9) {
                         Text(title)
-                            .font(.system(size: 28, weight: .regular))
+                            .font(.system(size: 24, weight: .regular))
                             .foregroundStyle(Color.black.opacity(0.74))
                             .lineLimit(2)
-                            .minimumScaleFactor(0.82)
+                            .minimumScaleFactor(0.78)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text(subtitle)
                             .font(.system(size: 13))
                             .foregroundStyle(Color.black.opacity(0.42))
@@ -481,9 +482,10 @@ struct SiriCommunicationHero: View {
             // 半身头像：左侧和顶部凸出框外
             if visual == .assistantAvatar {
                 AssistantBustHero(palette: palette, imageName: avatarImageName)
-                    .offset(x: -56, y: -40)
+                    .offset(x: -6, y: -42)
             }
         }
+        .padding(.top, 52)   // 给探出的头预留空间，避免被导航栏裁掉
         .revealOnAppear()
     }
 
@@ -517,38 +519,25 @@ struct AssistantBustHero: View {
 
                 Image(imageName)
                     .resizable()
-                    .scaledToFill()
-                    .frame(width: 172, height: 196)
+                    .aspectRatio(1024.0 / 1536.0, contentMode: .fit)  // 贴合真实图 2:3，不留白不变形
+                    .frame(width: 138, height: 207)
+                    // 只在底部融入卡片，头、脸、两侧都保持清晰，让人物清楚地“站出来”
                     .mask(
                         LinearGradient(
                             stops: [
                                 .init(color: .black, location: 0.0),
-                                .init(color: .black, location: 0.72),
-                                .init(color: .black.opacity(0.90), location: 0.84),
+                                .init(color: .black, location: 0.80),
+                                .init(color: .black.opacity(0.85), location: 0.90),
                                 .init(color: .clear, location: 1.0)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
-                    .mask(
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0.0),
-                                .init(color: .black.opacity(0.88), location: 0.08),
-                                .init(color: .black, location: 0.22),
-                                .init(color: .black, location: 0.74),
-                                .init(color: .black.opacity(0.72), location: 0.88),
-                                .init(color: .clear, location: 1.0)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
                     .shadow(color: palette.accent.opacity(0.28), radius: 24, y: 10)
-                    .shadow(color: .black.opacity(0.15), radius: 22, y: 10)
+                    .shadow(color: .black.opacity(0.18), radius: 22, y: 12)
                     .scaleEffect(1 + 0.012 * sin(t * 1.45))
-                    .offset(x: -6, y: -20)
+                    .offset(x: -4, y: -46)
 
                 Image(systemName: "moon.fill")
                     .font(.system(size: 16, weight: .semibold))

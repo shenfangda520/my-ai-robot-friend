@@ -77,33 +77,30 @@ struct OnboardingView: View {
                 }
             }
 
-            Button {
-                if page == pages.count - 1 {
+            // 中间页靠左右滑动翻页，不再显示「继续」；只在最后一页保留进入入口
+            if page == pages.count - 1 {
+                Button {
                     onFinish()
-                } else {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    withAnimation(GenUIMotion.morph) {
-                        page += 1
+                } label: {
+                    HStack {
+                        Text("开始使用")
+                            .font(.system(size: 16, weight: .semibold))
+                        Spacer()
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .frame(width: 34, height: 34)
+                            .background(Color.white.opacity(0.16), in: Circle())
                     }
+                    .foregroundStyle(.white)
+                    .padding(.leading, 18)
+                    .padding(.trailing, 8)
+                    .padding(.vertical, 8)
+                    .background(Color.black.opacity(0.82), in: Capsule())
+                    .shadow(color: .black.opacity(0.18), radius: 18, y: 9)
                 }
-            } label: {
-                HStack {
-                    Text(page == pages.count - 1 ? "开始使用" : "继续")
-                        .font(.system(size: 16, weight: .semibold))
-                    Spacer()
-                    Image(systemName: page == pages.count - 1 ? "checkmark" : "arrow.right")
-                        .font(.system(size: 14, weight: .bold))
-                        .frame(width: 34, height: 34)
-                        .background(Color.white.opacity(0.16), in: Circle())
-                }
-                .foregroundStyle(.white)
-                .padding(.leading, 18)
-                .padding(.trailing, 8)
-                .padding(.vertical, 8)
-                .background(Color.black.opacity(0.82), in: Capsule())
-                .shadow(color: .black.opacity(0.18), radius: 18, y: 9)
+                .buttonStyle(.plain)
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 22)
         .padding(.top, 6)
