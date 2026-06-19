@@ -10,7 +10,8 @@ struct IridescentBackground: View {
 
     var body: some View {
         ZStack {
-            Color(hex: 0xF7F7FB).ignoresSafeArea()
+            // 略带冷调的底色，衬托全息光晕（原来的 0xF7F7FB 偏暖偏灰）
+            Color(hex: 0xF4F5FB).ignoresSafeArea()
 
             TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { ctx in
                 let t = ctx.date.timeIntervalSinceReferenceDate
@@ -20,12 +21,12 @@ struct IridescentBackground: View {
                     colors: palette.mesh
                 )
                 .ignoresSafeArea()
-                .blur(radius: 50)
-                .opacity(0.9)
+                .blur(radius: 44)
+                .opacity(1.0)
             }
 
-            // 一层白纱，制造通透、磨砂的空气感
-            Color.white.opacity(0.18).ignoresSafeArea()
+            // 一层薄白纱，制造通透、磨砂的空气感（从 0.18 降到 0.10，不再压住色彩）
+            Color.white.opacity(0.10).ignoresSafeArea()
         }
         .animation(.easeInOut(duration: 1.2), value: palette.accent)
     }

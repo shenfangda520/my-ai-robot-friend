@@ -9,9 +9,19 @@ import SwiftUI
 
 @main
 struct my_ai_robot_friendApp: App {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
     var body: some Scene {
         WindowGroup {
-            RootView()
+            if hasCompletedOnboarding {
+                RootView()
+            } else {
+                OnboardingView {
+                    withAnimation(GenUIMotion.morph) {
+                        hasCompletedOnboarding = true
+                    }
+                }
+            }
         }
     }
 }

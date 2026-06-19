@@ -51,6 +51,31 @@ struct AppSettings: Codable, Equatable {
     var nightCheckIn = true     // 深夜劝睡
     var morningGreeting = true  // 早安
     var ttsEnabled = true       // 语音朗读按钮
+
+    // 气泡外观：空 = 跟随心情；否则是 6 位十六进制颜色（你的气泡）
+    var bubbleHex = ""
+
+    // 模型接入（都走 OpenAI 兼容接口）
+    var providerName = "DeepSeek"
+    var apiBaseURL = "https://api.deepseek.com/v1"
+    var modelName = "deepseek-chat"
+}
+
+/// 模型供应商预设（均为 OpenAI 兼容 /chat/completions 接口）。
+struct ModelProvider: Identifiable, Equatable {
+    var id: String { name }
+    let name: String
+    let baseURL: String
+    let model: String
+
+    static let presets: [ModelProvider] = [
+        .init(name: "DeepSeek", baseURL: "https://api.deepseek.com/v1", model: "deepseek-chat"),
+        .init(name: "Kimi", baseURL: "https://api.moonshot.cn/v1", model: "moonshot-v1-8k"),
+        .init(name: "通义千问", baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1", model: "qwen-plus"),
+        .init(name: "智谱GLM", baseURL: "https://open.bigmodel.cn/api/paas/v4", model: "glm-4-flash"),
+        .init(name: "OpenAI", baseURL: "https://api.openai.com/v1", model: "gpt-4o-mini"),
+        .init(name: "自定义", baseURL: "", model: ""),
+    ]
 }
 
 struct MemoryFact: Identifiable, Codable, Equatable {

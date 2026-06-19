@@ -16,20 +16,27 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    GlassPageHeader(
-                        systemImage: "gearshape.fill",
-                        title: "设置",
-                        subtitle: "管理模型连接、主动提醒、语音和数据。敏感内容只保存在本机。",
-                        palette: palette
-                    )
+            RobotPage(palette: palette) {
+                GlassPageHeader(
+                    systemImage: "gearshape.fill",
+                    title: "设置",
+                    subtitle: "管理模型连接、主动提醒、语音和数据。敏感内容只保存在本机。",
+                    palette: palette
+                )
+
+                // 模型接入
+                SurfaceSection(title: "模型接入", subtitle: "支持任意 OpenAI 兼容的模型。选预设会自动填好地址和模型名，也可改成自定义。") {
+                    MenuPickerRow(label: "供应商", selection: $store.settings.providerName,
+                                  options: ModelProvider.presets.map(\.name),
+                                  placeholder: "选择")
+                    LabeledField(label: "接口地址", text: $store.settings.apiBaseURL,
+                                 placeholder: "https://…/v1")
+                    LabeledField(label: "模型名", text: $store.settings.modelName,
+                                 placeholder: "deepseek-chat")
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 8, leading: 18, bottom: 8, trailing: 18))
 
                 // API Key
-                Section {
+                SurfaceSection(title: "API Key", subtitle: "只存在本机。对应你上面选的供应商，去其官网创建并少量充值即可。") {
                     SecureField("sk-...", text: $keyDraft)
                         .font(.system(size: 15))
                         .textInputAutocapitalization(.never)
@@ -46,54 +53,88 @@ struct SettingsView: View {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 13, weight: .bold))
                         }
-                        .foregroundStyle(.white)
+                        .foregroundStyle(keyDraft.trimmingCharacters(in: .whitespaces).isEmpty ? Color.black.opacity(0.34) : .white)
                         .padding(.horizontal, 15)
                         .padding(.vertical, 12)
-                        .background(Color.black.opacity(keyDraft.trimmingCharacters(in: .whitespaces).isEmpty ? 0.25 : 0.86), in: Capsule())
+                        .background(keyDraft.trimmingCharacters(in: .whitespaces).isEmpty ? Color.white.opacity(0.56) : Color.black.opacity(0.82), in: Capsule())
+                        .overlay(Capsule().stroke(Color.white.opacity(0.74), lineWidth: 1))
+                        .shadow(color: .black.opacity(keyDraft.trimmingCharacters(in: .whitespaces).isEmpty ? 0.03 : 0.12), radius: 12, y: 6)
                     }
                     .buttonStyle(.plain)
                     .disabled(keyDraft.trimmingCharacters(in: .whitespaces).isEmpty)
-                } header: {
-                    Text("DeepSeek API Key")
-                } footer: {
-                    Text("去 platform.deepseek.com 创建，充几块就能用很久。只存在本机。")
+                    .scaleEffect(keyDraft.trimmingCharacters(in: .whitespaces).isEmpty ? 0.985 : 1)
+                    .animation(GenUIMotion.quick, value: keyDraft.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
-                .glassRow()
 
                 // 主动找你
-                Section("主动找你") {
+                SurfaceSection(title: "主动找你") {
                     Toggle("允许主动通知", isOn: $store.settings.notificationsEnabled)
                         .formControlRow()
                     if store.settings.notificationsEnabled {
+                        RowDivider()
                         Toggle("深夜劝你睡觉", isOn: $store.settings.nightCheckIn)
                             .formControlRow()
+                        RowDivider()
                         Toggle("早安问候", isOn: $store.settings.morningGreeting)
                             .formControlRow()
                     }
                 }
-                .glassRow()
 
                 // 语音
-                Section("语音") {
+                SurfaceSection(title: "语音") {
                     Toggle("显示朗读按钮", isOn: $store.settings.ttsEnabled)
                         .formControlRow()
                 }
-                .glassRow()
+
+                // 气泡外观
+                SurfaceSection(title: "气泡外观", subtitle: "自定义你发出的消息气泡颜色；不设则跟随它的心情变化。") {
+                    ColorPicker(selection: Binding(
+                        get: { store.settings.bubbleColor ?? palette.accentDeep },
+                        set: { store.settings.bubbleHex = $0.hexString }
+                    ), supportsOpacity: false) {
+                        HStack(spacing: 12) {
+                            Text("我的气泡颜色")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(Color.black.opacity(0.62))
+                        }
+                    }
+                    .formControlRow()
+                    if !store.settings.bubbleHex.isEmpty {
+                        RowDivider()
+                        Button {
+                            store.settings.bubbleHex = ""
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.counterclockwise")
+                                    .font(.system(size: 13, weight: .semibold))
+                                Text("跟随心情")
+                                    .font(.system(size: 15, weight: .medium))
+                                Spacer()
+                            }
+                            .foregroundStyle(Color.black.opacity(0.6))
+                            .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
 
                 // 高级
-                Section {
+                SurfaceSection(title: "高级", subtitle: "创造力越高，回话越随机；越低则更稳。") {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
                             Text("创造力").font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(Color.black.opacity(0.62))
                             Spacer()
                             Text(String(format: "%.1f", store.persona.creativity))
                                 .font(.system(size: 13, weight: .semibold).monospacedDigit())
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.black.opacity(0.40))
                         }
                         Slider(value: $store.persona.creativity, in: 0.5...1.6, step: 0.1)
-                            .tint(.primary)
+                            .tint(Color.black.opacity(0.72))
                     }
                     .padding(.vertical, 8)
+                    .animation(GenUIMotion.quick, value: store.persona.creativity)
+                    RowDivider()
                     VStack(alignment: .leading, spacing: 7) {
                         Text("额外人设补充").formFieldLabel()
                         TextField("比如：说话喜欢用东北话、口头禅是…", text: $store.persona.customNote, axis: .vertical)
@@ -101,35 +142,33 @@ struct SettingsView: View {
                             .font(.system(size: 15))
                             .glassFieldBackground()
                     }
-                } header: {
-                    Text("高级")
-                } footer: {
-                    Text("创造力越高，回话越随机、越天马行空；低则更稳。")
                 }
-                .glassRow()
 
                 // 数据
-                Section("数据") {
+                SurfaceSection(title: "数据") {
                     Button(role: .destructive) { confirmClearChat = true } label: {
-                        Label("清空聊天记录", systemImage: "trash")
-                            .font(.system(size: 15, weight: .medium))
+                        DestructiveRowLabel(title: "清空聊天记录", systemImage: "trash")
                     }
-                    .padding(.vertical, 7)
+                    .buttonStyle(.plain)
+                    RowDivider()
                     Button(role: .destructive) { confirmClearMem = true } label: {
-                        Label("清空记忆", systemImage: "brain.head.profile")
-                            .font(.system(size: 15, weight: .medium))
+                        DestructiveRowLabel(title: "清空记忆", systemImage: "brain.head.profile")
                     }
-                    .padding(.vertical, 7)
+                    .buttonStyle(.plain)
                 }
-                .glassRow()
             }
-            .glassForm(palette)
             .navigationTitle("设置")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.hidden, for: .navigationBar)
             .onAppear { keyDraft = store.apiKey }
             .onChange(of: store.settings) { _, _ in store.saveSettings() }
             .onChange(of: store.persona) { _, _ in store.savePersona() }
+            .onChange(of: store.settings.providerName) { _, name in
+                // 选了预设供应商，自动填地址和模型名（“自定义”则保留用户输入）
+                if let p = ModelProvider.presets.first(where: { $0.name == name }), name != "自定义" {
+                    store.settings.apiBaseURL = p.baseURL
+                    store.settings.modelName = p.model
+                }
+            }
             .alert("清空聊天记录？", isPresented: $confirmClearChat) {
                 Button("取消", role: .cancel) {}
                 Button("清空", role: .destructive) { store.clearHistory() }
@@ -148,5 +187,25 @@ struct SettingsView: View {
     private func hideKeyboard() {
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+private struct DestructiveRowLabel: View {
+    let title: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 30, height: 30)
+                .background(Color.red.opacity(0.08), in: Circle())
+                .overlay(Circle().stroke(Color.white.opacity(0.72), lineWidth: 1))
+            Text(title)
+                .font(.system(size: 15, weight: .semibold))
+            Spacer()
+        }
+        .foregroundStyle(.red.opacity(0.72))
+        .padding(.vertical, 8)
     }
 }

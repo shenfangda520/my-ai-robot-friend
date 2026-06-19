@@ -44,6 +44,8 @@ struct RootView: View {
         }
         .tint(.primary)
         .preferredColorScheme(.light)
+        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
         .task {
             await NotificationManager.shared.requestAuthorization()
             store.rescheduleNotifications()
@@ -59,7 +61,7 @@ struct GlassFormBackground: ViewModifier {
     let palette: MoodPalette
     func body(content: Content) -> some View {
         ZStack {
-            IridescentBackground(palette: palette)
+            GenUIBackground(palette: palette)
             content
                 .scrollContentBackground(.hidden)
                 .listSectionSpacing(16)
@@ -78,12 +80,14 @@ extension View {
             .listRowSeparator(.hidden)
             .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
             .listRowBackground(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(.white.opacity(0.32), lineWidth: 0.75))
-                .shadow(color: .black.opacity(0.025), radius: 8, y: 3)
-                .padding(.vertical, 1.5)
+                RoundedRectangle(cornerRadius: Glass.Radius.row, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(RoundedRectangle(cornerRadius: Glass.Radius.row, style: .continuous)
+                        .fill(Color.white.opacity(0.52)))
+                    .overlay(RoundedRectangle(cornerRadius: Glass.Radius.row, style: .continuous)
+                        .stroke(Color.white.opacity(0.72), lineWidth: 0.75))
+                    .shadow(color: .black.opacity(0.035), radius: 8, y: 4)
+                    .padding(.vertical, 1.5)
             )
     }
 
@@ -91,11 +95,17 @@ extension View {
         self
             .padding(.horizontal, 13)
             .padding(.vertical, 10)
-            .background(.white.opacity(0.2), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color.white.opacity(0.58)))
+            )
             .overlay {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(.white.opacity(0.38), lineWidth: 0.75)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color.white.opacity(0.78), lineWidth: 0.75)
             }
+            .shadow(color: .black.opacity(0.025), radius: 8, y: 4)
     }
 }
 
@@ -118,43 +128,51 @@ struct GlassPageHeader: View {
         HStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(palette.accent.opacity(0.16))
-                    .frame(width: 72, height: 72)
-                    .blur(radius: 12)
+                    .fill(palette.accentSoft.opacity(0.38))
+                    .frame(width: 66, height: 66)
+                    .blur(radius: 10)
                 if let imageName {
                     Image(imageName)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 66, height: 66)
+                        .frame(width: 60, height: 60)
                 } else if let systemImage {
                     Image(systemName: systemImage)
-                        .font(.system(size: 25, weight: .semibold))
-                        .foregroundStyle(palette.accent)
-                        .frame(width: 58, height: 58)
-                        .background(.white.opacity(0.46), in: Circle())
-                        .overlay(Circle().stroke(.white.opacity(0.64), lineWidth: 1))
+                        .font(.system(size: 23, weight: .semibold))
+                        .foregroundStyle(Color.black.opacity(0.62))
+                        .frame(width: 54, height: 54)
+                        .background(Color.white.opacity(0.58), in: Circle())
+                        .overlay(Circle().stroke(Color.white.opacity(0.75), lineWidth: 1))
                 }
             }
-            .frame(width: 78, height: 78)
+            .frame(width: 72, height: 72)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(title)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .font(.system(size: 24, weight: .regular))
+                    .foregroundStyle(Color.black.opacity(0.72))
                 Text(subtitle)
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.black.opacity(0.42))
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(.white.opacity(0.64), lineWidth: 1)
+        .background {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .fill(Color.white.opacity(0.46))
+                )
         }
-        .shadow(color: .black.opacity(0.06), radius: 22, y: 12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .stroke(Color.white.opacity(0.72), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.06), radius: 18, y: 9)
+        .revealOnAppear()
     }
 }

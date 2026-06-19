@@ -23,9 +23,14 @@ enum DeepSeekError: LocalizedError {
 
 struct DeepSeekService {
     let apiKey: String
+    var baseURL: String = "https://api.deepseek.com/v1"
+    var model: String = "deepseek-chat"
 
-    private static let endpoint = URL(string: "https://api.deepseek.com/v1/chat/completions")!
-    private static let model = "deepseek-chat"
+    private var endpoint: URL? {
+        let trimmed = baseURL.trimmingCharacters(in: .whitespaces)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return URL(string: trimmed + "/chat/completions")
+    }
 
     /// 根据人设、用户设定、记忆、事迹、当前情绪，动态拼出 system prompt。
     static func buildSystemPrompt(persona p: Persona, user: UserProfile,
@@ -92,13 +97,14 @@ struct DeepSeekService {
         }
 
         let body: [String: Any] = [
-            "model": Self.model,
+            "model": model,
             "messages": msgs,
             "temperature": persona.creativity,
             "max_tokens": 400,
         ]
 
-        var req = URLRequest(url: Self.endpoint)
+        guard let endpoint else { throw DeepSeekError.server(-1, "接口地址无效，检查设置里的 Base URL。") }
+        var req = URLRequest(url: endpoint)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
@@ -122,6 +128,51 @@ struct DeepSeekService {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard let content, !content.isEmpty else { throw DeepSeekError.empty }
         return Self.stripStageDirections(content)
+    }
+
+    /// 智能回复：根据最近对话，站在“我”的角度生成几条简短候选回复。尽力而为，失败返回空。
+    func suggestedReplies(history: [Message]) async -> [String] {
+        guard !apiKey.isEmpty, let endpoint else { return [] }
+
+        let recent = history.suffix(6)
+            .map { ($0.isUser ? "我" : "对方") + "：" + $0.content }
+            .joined(separator: "\n")
+        let sys = "你是输入法的智能回复助手。根据对话，站在「我」的角度，给出 3 条简短、口语化、彼此不同的可能回复。每条不超过 12 个字。每行一条，不要编号、不要引号、不要解释。"
+
+        let body: [String: Any] = [
+            "model": model,
+            "messages": [
+                ["role": "system", "content": sys],
+                ["role": "user", "content": "对话：\n\(recent)\n\n给我 3 条我可能的回复："],
+            ],
+            "temperature": 1.0,
+            "max_tokens": 80,
+        ]
+
+        var req = URLRequest(url: endpoint)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        req.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        req.timeoutInterval = 20
+
+        guard let (data, resp) = try? await URLSession.shared.data(for: req),
+              (resp as? HTTPURLResponse)?.statusCode == 200,
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let choices = json["choices"] as? [[String: Any]],
+              let content = (choices.first?["message"] as? [String: Any])?["content"] as? String
+        else { return [] }
+
+        let trimSet = CharacterSet(charactersIn: " 　-•·.、）)\"「」")
+        let lines: [String] = content.split(whereSeparator: { $0.isNewline }).map(String.init)
+        var out: [String] = []
+        for raw in lines {
+            var s = raw.trimmingCharacters(in: trimSet)
+            s = s.replacingOccurrences(of: #"^\d+[.、]\s*"#, with: "", options: .regularExpression)
+            if !s.isEmpty && s.count <= 18 { out.append(s) }
+            if out.count == 3 { break }
+        }
+        return out
     }
 
     /// 保险：去掉模型偶尔仍会带的括号动作/旁白，例如「（揉眼）」「*叹气*」。

@@ -12,6 +12,7 @@ final class ChatStore: ObservableObject {
     @Published var messages: [Message] = []
     @Published var mood = Mood()
     @Published var isSending = false
+    @Published var suggestions: [String] = []   // 根据最近对话推测的智能回复
     @Published var apiKey = ""
     @Published var persona = Persona()
     @Published var settings = AppSettings()
@@ -77,6 +78,7 @@ final class ChatStore: ObservableObject {
                 time: Date()))
         }
         if openerAppended { persist() }
+        refreshSuggestions()
     }
 
     private func persist() {
@@ -225,10 +227,12 @@ final class ChatStore: ObservableObject {
         messages.append(Message(role: .user, content: trimmed, time: Date()))
         mood.react(to: trimmed)
         isSending = true
+        suggestions = []   // 旧建议立即清掉
         persist()
 
         do {
-            let reply = try await DeepSeekService(apiKey: apiKey)
+            let reply = try await DeepSeekService(
+                apiKey: apiKey, baseURL: settings.apiBaseURL, model: settings.modelName)
                 .reply(history: messages, persona: persona, user: user,
                        memories: memories, events: events, mood: mood)
             messages.append(Message(role: .assistant, content: reply, time: Date()))
@@ -240,5 +244,24 @@ final class ChatStore: ObservableObject {
         isSending = false
         persist()
         rescheduleNotifications()
+        refreshSuggestions()
+    }
+
+    /// 根据最近对话推测几条“我”可能的回复（它刚说完话时才生成）。
+    func refreshSuggestions() {
+        guard !apiKey.isEmpty, let last = messages.last, !last.isUser else {
+            suggestions = []
+            return
+        }
+        let snapshot = messages
+        Task {
+            let result = await DeepSeekService(
+                apiKey: apiKey, baseURL: settings.apiBaseURL, model: settings.modelName)
+                .suggestedReplies(history: snapshot)
+            // 期间没有新消息才采用，避免覆盖
+            if messages.last?.id == snapshot.last?.id {
+                suggestions = result
+            }
+        }
     }
 }

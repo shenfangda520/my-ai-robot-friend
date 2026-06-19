@@ -22,10 +22,14 @@ final class Speaker {
     }()
 
     private func activateSession() {
+        // AVAudioSession 仅 iOS/tvOS/watchOS 有；macOS 上不存在，用平台条件编译包住，
+        // 这样项目以 Mac(Catalyst) 目标也能编译，方便在 Mac 上预览样式。
+        #if !os(macOS)
         let session = AVAudioSession.sharedInstance()
         // .playback：不受静音开关影响；.duckOthers：压低其他音频
         try? session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
         try? session.setActive(true)
+        #endif
     }
 
     func speak(_ text: String) {
