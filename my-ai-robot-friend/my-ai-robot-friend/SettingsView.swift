@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var keyDraft = ""
     @State private var confirmClearChat = false
     @State private var confirmClearMem = false
+    @State private var showPromo = false
 
     private var palette: MoodPalette { store.mood.palette }
 
@@ -24,6 +25,28 @@ struct SettingsView: View {
                     subtitle: "管理模型连接、主动提醒、语音和数据。敏感内容只保存在本机。",
                     palette: palette
                 )
+
+                // 推广
+                SurfaceSection(title: "推广", subtitle: "把\(store.persona.name)分享给更多人。") {
+                    Button { showPromo = true } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "megaphone.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .frame(width: 30, height: 30)
+                                .background(palette.accentSoft.opacity(0.6), in: Circle())
+                                .overlay(Circle().stroke(Color.white.opacity(0.7), lineWidth: 1))
+                            Text("推广海报 · 分享")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color.black.opacity(0.7))
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Color.black.opacity(0.3))
+                        }
+                        .padding(.vertical, 7)
+                    }
+                    .buttonStyle(.plain)
+                }
 
                 // 模型接入
                 SurfaceSection(title: "模型接入", subtitle: "支持任意 OpenAI 兼容的模型。选预设会自动填好地址和模型名，也可改成自定义。") {
@@ -231,6 +254,9 @@ struct SettingsView: View {
                 Button("清空", role: .destructive) { store.clearMemories() }
             } message: {
                 Text("\(store.persona.name)会忘记你让它记住的所有事。")
+            }
+            .sheet(isPresented: $showPromo) {
+                PromotionView(store: store)
             }
         }
     }
